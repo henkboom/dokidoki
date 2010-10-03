@@ -29,21 +29,8 @@ void init_preloaders(lua_State *L)
     lua_getglobal(L, "package");
     lua_getfield(L, -1, "preload");
 
-    // add your custom loaders here, they look like this:
-    REGISTER_LOADER("collision.native", luaopen_collision_native);
-    REGISTER_LOADER("gl", luaopen_gl);
-    REGISTER_LOADER("glfw", luaopen_glfw);
-    REGISTER_LOADER("glu", luaopen_glu);
-    REGISTER_LOADER("log", luaopen_log);
-    REGISTER_LOADER("memarray", luaopen_memarray);
-    REGISTER_LOADER("mixer", luaopen_mixer);
-    REGISTER_LOADER("stb_image", luaopen_stb_image);
-
-    // each night I pray that I might one day happen upon a less disgusting way
-    // of doing this
-    #ifdef EXTRA_LOADERS
-    #include EXTRA_LOADERS
-    #endif
+    // include the file generated during build
+    #include "minlua__loaders.h"
     
     lua_pop(L, 2);
 }

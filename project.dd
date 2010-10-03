@@ -1,0 +1,69 @@
+CFLAGS += -Wall -O2 -DMEMARRAY_USE_OPENGL
+LDFLAGS +=
+
+LINUX_CFLAGS += -DDOKIDOKI_LINUX -pthread
+LINUX_LDFLAGS += -Wl,-Bstatic -llua -lportaudio -lglfw -Wl,-Bdynamic \
+	 -pthread -lGL -lGLU -lX11 -lXrandr -lm -lasound -ljack
+
+MACOSX_CFLAGS +=-DDOKIDOKI_MACOSX \
+	-I/System/Library/Frameworks/CoreFoundation.framework/Headers \
+	-I/opt/local/include 
+MACOSX_LDFLAGS += -llua -lportaudio -lglfw -L/opt/local/lib -framework AGL \
+	-framework Opengl -framework Carbon
+
+MINGW_CFLAGS += -DDOKIDOKI_MINGW
+MINGW_LDFLAGS += -Wl,-Bstatic -llua -lportaudio -lglfw -Wl,-Bdynamic \
+	-lopengl32 -lglu32 -lole32 -lwinmm
+
+LUA_SRC += \
+    dokidoki/private/will.lua \
+    dokidoki/game.lua \
+    dokidoki/v2.lua \
+    dokidoki/scripts/sprite.lua \
+    dokidoki/scripts/transform.lua \
+    dokidoki/collision.lua \
+	dokidoki/components/opengl_2d.lua \
+    dokidoki/components/keyboard.lua \
+    dokidoki/components/exit_handler.lua \
+    dokidoki/default_font.lua \
+    dokidoki/kernel.lua \
+    dokidoki/graphics.lua \
+    dokidoki/base.lua \
+    dokidoki/actor_scene.lua \
+    dokidoki/module.lua
+
+C_SRC += \
+    dokidoki/collision.c \
+    dokidoki/gl.c \
+    dokidoki/glu.c \
+    dokidoki/log.c \
+    dokidoki/lua_stb_image.c \
+    dokidoki/luaglfw.c \
+    dokidoki/memarray.c \
+    dokidoki/minlua.c \
+    dokidoki/mixer.c \
+    dokidoki/stb_vorbis.c
+
+LUA_NATIVE_MODULES += \
+    collision.native \
+    gl \
+    glfw \
+    glu \
+    log \
+    memarray \
+    mixer \
+    stb_image
+
+RESOURCES +=
+
+# generate the list of loaders for native modules
+dokidoki/minlua.o: dokidoki/minlua__loaders.h
+
+dokidoki/minlua__loaders.h: project.dd $(LIBRARIES:%=%/project.dd)
+	lua dokidoki/generate_loaders.lua $(LUA_NATIVE_MODULES) > $@
+
+# clean the list of loaders
+clean: clean_dokidoki
+
+clean_dokidoki:
+	rm -f dokidoki/minlua__loaders.h

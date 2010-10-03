@@ -1,0 +1,4 @@
+*~
+*.o
+*.P
+minlua__loaders.h
