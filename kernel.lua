@@ -34,6 +34,7 @@ local mixer = require "mixer"
 local log = require "log"
 
 import(require "gl")
+import(require "glu")
 
 import(require "dokidoki.base")
 
@@ -307,7 +308,7 @@ function main_loop (scene)
     scene.draw()
 
     local err = glGetError()
-    if err ~= 0 then error('OpenGL error ' .. err) end
+    if err ~= 0 then error('OpenGL error: ' .. gluErrorString(err)) end
 
     if not running then return end
     glfw.SwapBuffers()
