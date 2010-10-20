@@ -41,7 +41,7 @@ void init_preloaders(lua_State *L)
 int get_exe_path(char *buffer, int size)
 {
     int ret = readlink("/proc/self/exe", buffer, size);
-    if(0 >= ret && ret < size)
+    if(0 <= ret && ret < size)
         buffer[ret] = 0;
     return ret;
 }
