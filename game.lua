@@ -73,6 +73,7 @@ function make_game (update_methods, draw_methods, init)
         local thunk, err = delayed_require(prefix .. name)
         if thunk then
           cache[name] = constructor(name, thunk)
+          break
         else
           table.insert(errors, err)
         end
