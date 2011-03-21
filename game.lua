@@ -4,122 +4,80 @@
 --- Implementation
 --- --------------
 
-require "dokidoki.module" [[make_script, make_blueprint, make_game]]
+require "dokidoki.module" [[make_game]]
 
 import(require "dokidoki.base")
 
---- ### `make_script(name, init)`
---- Returns a new script with the given name and initialization function.
---- Whenever an instance of this script is to be initialized, `init` has its
---- environment set to be the script instance, so that any global variable
---- assignments are local to that script, and any initialization arguments are
---- available in the environment.
-function make_script (name, init)
-  return {name = name, init = init}
-end
-
---- ### `make_blueprint(name, {script, key=value...}...)`
---- Returns a new blueprint with the given name and scripts. Each script can be
---- given a number of key-value pairs, which are stored as variables in the
---- script's environment. Variables set in `game.new()` take precedence over
---- these variables.
-function make_blueprint(name, ...)
-  return {name = name, ...}
-end
-
---- ### `make_game(update_methods, draw_methods, init)`
+--- ### `make_game(update_methods, draw_methods, init, init_args...)`
 --- Makes a game with the given update and draw phases. A scene for use with
---- `kernel.start_with_scene()` is returned, and during the first update `init`
---- is called with the game as a parameter.
-function make_game (update_methods, draw_methods, init)
+--- `kernel.start_with_scene()` is returned. During the first update the
+--- component named by `init` is initialized as the root, with `init_args...`
+--- as its arguments.
+function make_game (update_methods, draw_methods, init, ...)
   local game = {}
-  game.actors = {}
+  local init_args = {n = select('#', ...), ...}
 
-  local actors_by_tag = {}
-  local scripts_by_method = {}
+  -- all active components
+  local components = {}
 
-  scripts_by_method = {}
-  scripts_by_method.handle_event = {}
-  for _, method in ipairs(update_methods) do scripts_by_method[method] = {} end
-  for _, method in ipairs(draw_methods) do scripts_by_method[method] = {} end
-
-  game.make_script = make_script
-  game.make_blueprint = make_blueprint
-
-  -- delayed_require(name)
-  -- Works like the regular require except that it returns a function
-  -- representing the body of the module instead of running it. Also, if the
-  -- module is not found, instead of signalling an error, nil and an error
-  -- message are returned. Bypasses the global packages.loaded table for
-  -- obvious reasons.
-  local function delayed_require(name)
-    local errors = {}
-    for _, loader in ipairs(package.loaders) do
-      local module = loader(name)
-      if type(module) == 'function' then
-        return module
-      else
-        table.insert(errors, module)
-      end
-    end
-    return nil, table.concat(errors)
+  -- map callback names to lists of subscribing components
+  local components_by_callback = {handle_event = {}}
+  for _, method in ipairs(update_methods) do
+    components_by_callback[method] = {}
+  end
+  for _, method in ipairs(draw_methods) do
+    components_by_callback[method] = {}
   end
 
-  local function generic_load(kind, constructor, cache, prefixes, name)
-    local errors = {}
+  -- component-keyed set of components queued for removal
+  local components_to_remove = {}
 
-    if not cache[name] then
-      for _, prefix in ipairs(prefixes) do
-        local thunk, err = delayed_require(prefix .. name)
-        if thunk then
-          cache[name] = constructor(name, thunk)
-          break
+
+  -- load_module(name)
+  -- Like `loadfile` except that it uses `package.loaders` to look up the
+  -- module like `require`.
+  local module_cache = {}
+  local function load_module(name)
+    if not module_cache[name] then
+      local errors = {}
+      for _, loader in ipairs(package.loaders) do
+        local module = loader(name)
+        if type(module) == 'function' then
+          return module
         else
-          table.insert(errors, err)
+          table.insert(errors, module)
         end
       end
+      error(table.concat(errors))
     end
-
-    if not cache[name] then
-      error('couldn\'t find requested ' .. kind .. ' "' .. name .. '"' ..
-            table.concat(errors))
-    end
-
-    return cache[name]
   end
 
-  -- load_script(name)
-  -- Loads a script by name.
-  local loaded_scripts = {}
-  local script_prefixes = {'scripts.', 'dokidoki.scripts.'}
-  local function load_script(name)
-    return generic_load('script', make_script, loaded_scripts, script_prefixes,
-                        name)
-  end
+  --- ### `game.add_component(parent, component_type, component_args...)`
+  --- Adds a new child component to the component `parent`. `component_type` is
+  --- the name of a module to use as the constructor. `component_args...` are
+  --- passed through as arguments to this constructor.
+  function game.add_component(parent, component_type, ...)
+    -- If the parent is nil then we are initializing the root node, which is
+    -- the game object itself. This happens once internally and then never
+    -- again.
 
-  -- game.load_component(name)
-  -- Loads a component by name.
-  local loaded_components = {}
-  local component_prefixes = {'components.', 'dokidoki.components.'}
-  local function load_component(name)
-    local function make_component(_, component) return component end
-    return generic_load('component', make_component, loaded_components,
-                        component_prefixes, name)
-  end
-
-  --- ### `game.init_component(name)`
-  --- Loads and initializes the named component.
-  function game.init_component(name)
-    if game[name] ~= nil then
-      error('name collision with component "' .. name .. '"')
+    -- If the game has been initialized then there must be a parent.
+    if game.game then
+      assert(parent, 'game.add_component: must have a parent')
     end
+    assert(type(component_type) == 'string',
+           'game.add_component: component_type must be a string')
 
-    local component = {game=game}
-    game[name] = component
+    local component = parent == nil and game or {}
+    component.game = game
+    component.parent = parent
+    component.self = component
 
-    local component_init = load_component(name)
-    local env = getfenv(component_init)
-    setfenv(component_init, setmetatable({}, {
+    -- call the constructor in the construction environment
+    local constructor = load_module(component_type)
+    local env = getfenv(constructor)
+    setfenv(constructor, setmetatable({}, {
+      -- lookups chain from the component to its environment
       __index = function (_, k)
         local ret = component[k]
         if ret ~= nil then
@@ -128,128 +86,31 @@ function make_game (update_methods, draw_methods, init)
           return env[k]
         end
       end,
-      __newindex = function (_, k, v)
+      -- assignments go directly to the component
+      __newindex = function(_, k, v)
         component[k] = v
       end
     }))
-    component_init(name)
-    setfenv(component_init, env)
-  end
+    constructor(...)
+    -- reset the environment for next time
+    setfenv(constructor, env)
 
-  --- ### `game.actors.new(blueprint, {script, key=value...}...)`
-  --- Instantiates a blueprint and adds the actor to the scene. Optionally,
-  --- initialization arguments can be given to any script in the blueprint.
-  --- These initialization arguments take precedence over the ones given in the
-  --- blueprint definition.
-  function game.actors.new(blueprint, ...)
-    local arguments = {}
-    for _, arg in ipairs{...} do
-      local script = arg[1]
-      if type(script) == 'string' then
-        script = load_script(script)
-      end
-      arguments[script] = arg
-    end
-
-    local actor = {
-      blueprint = blueprint,
-      tags = {[blueprint.name] = true},
-      dead = false,
-      paused = false,
-      hidden = false
-    }
-
-    for _, script_spec in ipairs(blueprint) do
-      local script = script_spec[1]
-      if type(script) == 'string' then
-        script = load_script(script)
-      end
-      local script_name = script.name
-      local script_init = script.init
-
-      -- create script environment
-      local script_env = {self = actor, game = game}
-
-      -- add it to the actor, checking that there's no script collision
-      if actor[script_name] ~= nil then
-        error('script name collision for "' .. script_name .. "'")
-      end
-      actor[script_name] = script_env
-
-      -- initialize default values from blueprint
-      for k, v in pairs(script_spec) do
-        if k ~= 1 then script_env[k] = v end
-      end
-
-      -- add constructor values
-      if arguments[script] then
-        for k, v in pairs(arguments[script]) do
-          if k ~= 1 then script_env[k] = v end
-        end
-      end
-
-      -- initialize the script
-
-      -- the script's global environment is its table in the actor, chaining up
-      -- to its original environment (usually the default global environment)
-      --
-      -- currently this is done using a dispatch function. this might be slow.
-      --
-      -- one alternative is to set the __index to be the script table itself,
-      -- with the script table chaining to global. this would be faster but
-      -- would expose the global environment through the script's table, which
-      -- would be wierd.
-      --
-      -- another alternative is to add a reference to _G to the script table
-      -- and not use chaining at all. this would probably be annoying for
-      -- script writing though.
-      local env = getfenv(script_init)
-      setfenv(script_init, setmetatable({}, {
-        __index = function (_, k)
-          local ret = script_env[k]
-          if ret ~= nil then
-            return ret
-          else
-            return env[k]
-          end
-        end,
-        __newindex = function (_, k, v)
-          script_env[k] = v
-        end
-      }))
-      script_init(script_name)
-      setfenv(script_init, env)
-
-      -- index the script by its methods
-      for method, t in pairs(scripts_by_method) do
-        if script_env[method] then t[#t+1] = script_env end
+    -- add the component to the internal lists
+    components[#components+1] = component
+    for method, t in pairs(components_by_callback) do
+      if component[method] then
+        t[#t+1] = component
       end
     end
 
-    -- index the actor by its tags
-    for tag in pairs(actor.tags or {}) do
-      actors_by_tag[tag] = actors_by_tag[tag] or {}
-      table.insert(actors_by_tag[tag], actor)
-    end
-
-    return actor
+    return component
   end
 
-  --- ### `game.actors.new_generic(name, init)`
-  --- Adds a simple one-script actor, with the script initializer given by
-  --- `init`. This is a shortcut for creating a new blueprint with one script
-  --- and then instantiating it. The generated actor will have `name` as its
-  --- name, and a single script named `generic`.
-  function game.actors.new_generic(name, init)
-    return game.actors.new(
-      make_blueprint(name, {make_script('generic', init)}))
-  end
-
-  --- ### `game.actors.get(tag)`
-  --- Returns a list of the actors with the given tag. This is an internal data
-  --- structure, so copy it if you need to make changes.
-  function game.actors.get (tag)
-    return actors_by_tag[tag] or {}
+  --- ### `game.remove_component(component)`
+  --- Queues `component` for removal after the current update. Removed
+  --- components will also have the field `dead` set to true.
+  function game.remove_component(component)
+    components_to_remove[#components_to_remove+1] = component
   end
 
   --- ### Scene Interface
@@ -258,7 +119,7 @@ function make_game (update_methods, draw_methods, init)
   --- the scene object returned by `make_game()`.
 
   local function handle_event (event)
-    for _, a in ipairs(scripts_by_method.handle_event) do
+    for _, a in ipairs(components_by_callback.handle_event) do
       a.handle_event(event)
     end
   end
@@ -266,35 +127,56 @@ function make_game (update_methods, draw_methods, init)
   local function update (dt)
     -- initialize
     if init then
-      init(game)
+      game.add_component(nil, init, unpack(init_args, 1, init_args.n))
       init = false
+      init_args = nil
     end
 
     -- update all actors
-    for _, update_type in ipairs(update_methods) do
-      for _, script in ipairs(scripts_by_method[update_type]) do
-        if not script.self.dead and not script.self.paused then
-          script[update_type]() end
+    for _, update_method in ipairs(update_methods) do
+      local components_to_update = components_by_callback[update_method]
+      for i = 1, #components_to_update do
+        components_to_update[i][update_method]()
       end
     end
 
-    -- cull dead actors
-    for k, _ in pairs(scripts_by_method) do
-      scripts_by_method[k] =
-        ifilter(function (s) return not s.self.dead end, scripts_by_method[k])
+    -- process actor removals
+    if #components_to_remove > 0 then
+      -- transitive closure
+      for i = 1, #components do
+        local component = components[i]
+        if components_to_remove[component.parent] then
+          components_to_remove[component] = true
+        end
+        if components_to_remove[component] then
+          component.dead = true
+        end
+      end
+
+      -- cull out the removed components
+      components = ifilter(
+        function (component) return not components_to_remove[component] end,
+        components)
+      for k, _ in pairs(components_by_callback) do
+        components_by_callback[k] = ifilter(
+          function (component) return not components_to_remove[component] end,
+          components_by_callback[k])
+      end
+
+      components_to_remove = {}
+
     end
-    for k, _ in pairs(actors_by_tag) do
-      actors_by_tag[k] =
-        ifilter(function (a) return not a.dead end, actors_by_tag[k])
+
+    if #components == 0 then
+      kernel.abort_main_loop()
     end
   end
 
   local function draw ()
-    for _, draw_type in ipairs(draw_methods) do
-      for _, script in ipairs(scripts_by_method[draw_type]) do
-        if not script.self.hidden then
-          script[draw_type]()
-        end
+    for _, draw_method in ipairs(draw_methods) do
+      local components_to_draw = components_by_callback[draw_method]
+      for i = 1,  #components_to_draw do
+        components_to_draw[i][draw_method]()
       end
     end
   end

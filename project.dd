@@ -19,12 +19,12 @@ LUA_SRC += \
     dokidoki/private/will.lua \
     dokidoki/game.lua \
     dokidoki/v2.lua \
-    dokidoki/scripts/sprite.lua \
-    dokidoki/scripts/transform.lua \
+    dokidoki/sprite.lua \
+    dokidoki/transform.lua \
     dokidoki/collision.lua \
-	dokidoki/components/opengl_2d.lua \
-    dokidoki/components/keyboard.lua \
-    dokidoki/components/exit_handler.lua \
+	dokidoki/opengl_2d.lua \
+    dokidoki/keyboard.lua \
+    dokidoki/exit_handler.lua \
     dokidoki/default_font.lua \
     dokidoki/kernel.lua \
     dokidoki/graphics.lua \
