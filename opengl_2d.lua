@@ -2,7 +2,7 @@ local gl = require 'gl'
 local kernel = require 'dokidoki.kernel'
 
 local args = ...
-background_color = args.background_color or false
+background_color = args.background_color or {0, 0, 0}
 width = args.width or 640
 height = args.height or 480
 
