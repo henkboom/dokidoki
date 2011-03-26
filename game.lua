@@ -110,7 +110,7 @@ function make_game (update_methods, draw_methods, init, ...)
   --- Queues `component` for removal after the current update. Removed
   --- components will also have the field `dead` set to true.
   function game.remove_component(component)
-    components_to_remove[#components_to_remove+1] = component
+    components_to_remove[component] = true
   end
 
   --- ### Scene Interface
@@ -141,7 +141,7 @@ function make_game (update_methods, draw_methods, init, ...)
     end
 
     -- process actor removals
-    if #components_to_remove > 0 then
+    if next(components_to_remove) ~= nil then
       -- transitive closure
       for i = 1, #components do
         local component = components[i]
