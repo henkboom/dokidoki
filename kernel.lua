@@ -267,8 +267,10 @@ function main_loop (scene)
     local new_width, new_height
     for i, event in ipairs(events) do
       if event.type == 'resize' then
-        new_width = event.width
-        new_height = event.height
+        if event.width > 0 and event.height > 0 then
+          new_width = event.width
+          new_height = event.height
+        end
       end
       scene.handle_event(event)
       if not running then return end
