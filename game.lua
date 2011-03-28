@@ -43,6 +43,7 @@ function make_game (update_methods, draw_methods, init, ...)
       for _, loader in ipairs(package.loaders) do
         local module = loader(name)
         if type(module) == 'function' then
+          module_cache[name] = module
           return module
         else
           table.insert(errors, module)
@@ -50,6 +51,7 @@ function make_game (update_methods, draw_methods, init, ...)
       end
       error(table.concat(errors))
     end
+    return module_cache[name]
   end
 
   --- ### `game.add_component(parent, component_type, component_args...)`
