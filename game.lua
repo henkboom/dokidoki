@@ -49,7 +49,8 @@ function make_game (update_methods, draw_methods, init, ...)
           table.insert(errors, module)
         end
       end
-      error(table.concat(errors))
+      error('couldn\'t find component "' .. name .. '": ' ..
+            table.concat(errors))
     end
     return module_cache[name]
   end
@@ -67,41 +68,43 @@ function make_game (update_methods, draw_methods, init, ...)
     if game.game then
       assert(parent, 'game.add_component: must have a parent')
     end
-    assert(type(component_type) == 'string',
-           'game.add_component: component_type must be a string')
+    assert(component_type == nil or type(component_type) == 'string',
+           'game.add_component: if given, component_type must be a string')
 
     local component = parent == nil and game or {}
     component.game = game
     component.parent = parent
     component.self = component
 
-    -- call the constructor in the construction environment
-    local constructor = load_module(component_type)
-    local env = getfenv(constructor)
-    setfenv(constructor, setmetatable({}, {
-      -- lookups chain from the component to its environment
-      __index = function (_, k)
-        local ret = component[k]
-        if ret ~= nil then
-          return ret
-        else
-          return env[k]
+    if component_type then
+      -- call the constructor in the construction environment
+      local constructor = load_module(component_type)
+      local env = getfenv(constructor)
+      debug.setfenv(constructor, setmetatable({}, {
+        -- lookups chain from the component to its environment
+        __index = function (_, k)
+          local ret = component[k]
+          if ret ~= nil then
+            return ret
+          else
+            return env[k]
+          end
+        end,
+        -- assignments go directly to the component
+        __newindex = function(_, k, v)
+          component[k] = v
         end
-      end,
-      -- assignments go directly to the component
-      __newindex = function(_, k, v)
-        component[k] = v
-      end
-    }))
-    constructor(...)
-    -- reset the environment for next time
-    setfenv(constructor, env)
+      }))
+      constructor(...)
+      -- reset the environment for next time
+      debug.setfenv(constructor, env)
 
-    -- add the component to the internal lists
-    components[#components+1] = component
-    for method, t in pairs(components_by_callback) do
-      if component[method] then
-        t[#t+1] = component
+      -- add the component to the internal lists
+      components[#components+1] = component
+      for method, t in pairs(components_by_callback) do
+        if component[method] then
+          t[#t+1] = component
+        end
       end
     end
 
@@ -151,6 +154,9 @@ function make_game (update_methods, draw_methods, init, ...)
           components_to_remove[component] = true
         end
         if components_to_remove[component] then
+          if component.on_death then
+            component.on_removal()
+          end
           component.dead = true
         end
       end
