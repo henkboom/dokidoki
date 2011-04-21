@@ -1,5 +1,5 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef DOKIDOKI_LOG_H
+#define DOKIDOKI_LOG_H
 
 #include <lua.h>
 
