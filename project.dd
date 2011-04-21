@@ -1,5 +1,5 @@
-CFLAGS += -Wall -O2 -DMEMARRAY_USE_OPENGL
-LDFLAGS +=
+CFLAGS += -Wall -O2 -DMEMARRAY_USE_OPENGL -I/usr/local/include/bullet
+LDFLAGS += -lBulletDynamics -lBulletCollision -lLinearMath
 
 LINUX_CFLAGS += -DDOKIDOKI_LINUX -pthread
 LINUX_LDFLAGS += -Wl,-Bstatic -llua -lportaudio -lglfw -Wl,-Bdynamic \
@@ -17,23 +17,21 @@ MINGW_LDFLAGS += -Wl,-Bstatic -llua -lportaudio -lglfw -Wl,-Bdynamic \
 
 LUA_SRC += \
     dokidoki/private/will.lua \
+	dokidoki/opengl_2d.lua \
+    dokidoki/base.lua \
+    dokidoki/default_font.lua \
+    dokidoki/exit_handler.lua \
     dokidoki/game.lua \
-    dokidoki/v2.lua \
+    dokidoki/graphics.lua \
+    dokidoki/kernel.lua \
+    dokidoki/keyboard.lua \
+    dokidoki/module.lua \
+    dokidoki/quaternion.lua \
     dokidoki/sprite.lua \
     dokidoki/transform.lua \
-    dokidoki/collision.lua \
-	dokidoki/opengl_2d.lua \
-    dokidoki/keyboard.lua \
-    dokidoki/exit_handler.lua \
-    dokidoki/default_font.lua \
-    dokidoki/kernel.lua \
-    dokidoki/graphics.lua \
-    dokidoki/base.lua \
-    dokidoki/actor_scene.lua \
-    dokidoki/module.lua
+    dokidoki/vect.lua
 
 C_SRC += \
-    dokidoki/collision.c \
     dokidoki/gl.c \
     dokidoki/glu.c \
     dokidoki/log.c \
@@ -44,8 +42,13 @@ C_SRC += \
     dokidoki/mixer.c \
     dokidoki/stb_vorbis.c
 
+CXX_SRC += \
+	dokidoki/box_rigid_body.cpp \
+	dokidoki/physics.cpp
+
 LUA_NATIVE_MODULES += \
-    collision.native \
+    dokidoki.box_rigid_body \
+    dokidoki.physics \
     gl \
     glfw \
     glu \

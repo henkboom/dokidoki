@@ -1,5 +1,6 @@
-local v2 = require 'dokidoki.v2'
+local vect = require 'dokidoki.vect'
+local quaternion = require 'dokidoki.quaternion'
 
 local args = ...
-pos = args.pos or v2(0, 0)
-facing = args.facing or v2(1, 0)
+pos = args and args.pos or vect(0, 0, 0)
+orientation = args and args.orientation or quaternion.identity
