@@ -75,6 +75,7 @@ function make_game (update_methods, draw_methods, init, ...)
     component.game = game
     component.parent = parent
     component.self = component
+    component.type = component_type
 
     -- add the component to the component list, must be done before calling
     -- constructor because the constructor might call add_component again
