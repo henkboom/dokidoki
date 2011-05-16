@@ -154,7 +154,7 @@ function make_game (update_methods, draw_methods, init, ...)
           components_to_remove[component] = true
         end
         if components_to_remove[component] then
-          if component.on_death then
+          if component.on_removal then
             component.on_removal()
           end
           component.dead = true
