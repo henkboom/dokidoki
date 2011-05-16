@@ -76,6 +76,10 @@ function make_game (update_methods, draw_methods, init, ...)
     component.parent = parent
     component.self = component
 
+    -- add the component to the component list, must be done before calling
+    -- constructor because the constructor might call add_component again
+    components[#components+1] = component
+
     if component_type then
       -- call the constructor in the construction environment
       local constructor = load_module(component_type)
@@ -98,13 +102,12 @@ function make_game (update_methods, draw_methods, init, ...)
       constructor(...)
       -- reset the environment for next time
       debug.setfenv(constructor, env)
+    end
 
-      -- add the component to the internal lists
-      components[#components+1] = component
-      for method, t in pairs(components_by_callback) do
-        if component[method] then
-          t[#t+1] = component
-        end
+    -- index by method
+    for method, t in pairs(components_by_callback) do
+      if component[method] then
+        t[#t+1] = component
       end
     end
 
