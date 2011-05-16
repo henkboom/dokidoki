@@ -14,11 +14,12 @@ for i = 0, 14 do
 end
 matrix[15] = 1
 
-if resource then
-  image = assert(game.resources and game.resources[resource],
+if args and args.resource then
+  image = assert(game.resources and game.resources[args.resource],
                  "resource not found")
-end
-if not image then
+elseif args and args.image then
+  image = args.image
+else
   image = {
     draw = function ()
       gl.glBegin(gl.GL_QUADS)
