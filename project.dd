@@ -1,8 +1,8 @@
 #### Project Stuff ############################################################
 
 CFLAGS += -Wall -O2 -DMEMARRAY_USE_OPENGL -Idokidoki/glfw/include \
-          -I/usr/local/include/bullet
-		  -Idokidoki/lua/src -Idokidoki/portaudio/include
+		  -Idokidoki/lua/src -Idokidoki/portaudio/include \
+		  -I/usr/local/include/bullet
 LDFLAGS += -lBulletDynamics -lBulletCollision -lLinearMath
 
 LINUX_CFLAGS += -DDOKIDOKI_LINUX -pthread
