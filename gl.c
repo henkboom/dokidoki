@@ -12,7 +12,7 @@
 
 static void * checkpointer(lua_State *L, int num)
 {
-  void *arg;
+  void *arg = NULL;;
   if(lua_islightuserdata(L, num))
     arg = lua_touserdata(L, num);
   else if(lua_isstring(L, num))
@@ -1495,7 +1495,7 @@ static int gl__glGetPolygonStipple(lua_State *L)
 
 static int gl__glGetString(lua_State *L)
 {
-  lua_pushstring(L, glGetString(
+  lua_pushstring(L, (const char *)glGetString(
     luaL_checknumber(L, 1)));
   return 1;
 }

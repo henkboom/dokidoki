@@ -12,7 +12,7 @@
 
 static void * checkpointer(lua_State *L, int num)
 {
-  void *arg;
+  void *arg = NULL;
   if(lua_islightuserdata(L, num))
     arg = lua_touserdata(L, num);
   else if(lua_isstring(L, num))
@@ -219,7 +219,7 @@ static int glu__gluScaleImage(lua_State *L)
 
 static int glu__gluErrorString(lua_State *L)
 {
-  lua_pushstring(L, gluErrorString(
+  lua_pushstring(L, (const char *)gluErrorString(
     luaL_checknumber(L, 1)));
   return 1;
 }
@@ -602,7 +602,7 @@ static int glu__gluNurbsProperty(lua_State *L)
 
 static int glu__gluGetString(lua_State *L)
 {
-  lua_pushstring(L, gluGetString(
+  lua_pushstring(L, (const char *)gluGetString(
     luaL_checknumber(L, 1)));
   return 1;
 }
