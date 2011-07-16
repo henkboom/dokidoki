@@ -112,11 +112,16 @@ dokidoki/minlua__loaders.h: project.dd $(LIBRARIES:%=%/project.dd)
 	@sh dokidoki/generate_loaders.sh $(LUA_NATIVE_MODULES) > $@
 
 # clean the list of loaders
-clean: clean_dokidoki
+clean: clean-dokidoki
 
-clean_dokidoki:
+clean-dokidoki:
 	rm -f dokidoki/minlua__loaders.h
+
+clean-all: clean-all-dokidoki
+
+clean-all-dokidoki:
 	$(MAKE) -C dokidoki/glfw $(GLFW_CLEAN_TARGET)
 	$(MAKE) -C dokidoki/lua clean
 	test -f dokidoki/portaudio/Makefile && \
 		$(MAKE) -C dokidoki/portaudio distclean || true
+
