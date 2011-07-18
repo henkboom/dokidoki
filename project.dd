@@ -1,9 +1,7 @@
 #### Project Stuff ############################################################
 
 CFLAGS += -Wall -O2 -DMEMARRAY_USE_OPENGL -Idokidoki/glfw/include \
-		  -Idokidoki/lua/src -Idokidoki/portaudio/include \
-		  -I/usr/local/include/bullet
-LDFLAGS += -lBulletDynamics -lBulletCollision -lLinearMath
+		  -Idokidoki/lua/src -Idokidoki/portaudio/include
 
 LINUX_CFLAGS += -DDOKIDOKI_LINUX -pthread
 LINUX_LDFLAGS += -pthread -lGL -lGLU -lX11 -lXrandr -lm -lasound -ljack
@@ -45,13 +43,7 @@ C_SRC += \
     dokidoki/mixer.c \
     dokidoki/stb_vorbis.c
 
-CXX_SRC += \
-	dokidoki/box_rigid_body.cpp \
-	dokidoki/physics.cpp
-
 LUA_NATIVE_MODULES += \
-    dokidoki.box_rigid_body \
-    dokidoki.physics \
     gl \
     glfw \
     glu \
@@ -64,37 +56,37 @@ RESOURCES +=
 
 #### Custom Build Stuff #######################################################
 
-LUA_LIB := dokidoki/lua/src/liblua.a
-PORTAUDIO_LIB := dokidoki/portaudio/lib/.libs/libportaudio.a
+LIBLUA := dokidoki/lua/src/liblua.a
+LIBPORTAUDIO := dokidoki/portaudio/lib/.libs/libportaudio.a
 
 ifeq ($(UNAME), Linux)
-GLFW_LIB := dokidoki/glfw/lib/x11/libglfw.a
-GLFW_TARGET := x11
-GLFW_CLEAN_TARGET := x11-clean
-LUA_TARGET := linux
+LIBGLFW := dokidoki/glfw/lib/x11/libglfw.a
+LIBGLFW_TARGET := x11
+LIBGLFW_CLEAN_TARGET := x11-clean
+LIBLUA_TARGET := all MYCFLAGS=-DLUA_USE_DLOPEN MYLIBS="-Wl,-E -ldl"
 endif
 ifeq ($(UNAME), Darwin)
-GLFW_LIB := dokidoki/glfw/lib/cocoa/libglfw.a
-GLFW_TARGET := cocoa
-GLFW_CLEAN_TARGET := cocoa-clean
-LUA_TARGET := macosx
+LIBGLFW := dokidoki/glfw/lib/cocoa/libglfw.a
+LIBGLFW_TARGET := cocoa
+LIBGLFW_CLEAN_TARGET := cocoa-clean
+LIBLUA_TARGET := all MYCFLAGS=-DLUA_USE_DLOPEN
 endif
 ifeq ($(UNAME), MINGW32)
-GLFW_LIB := dokidoki/glfw/lib/mingw/libglfw.a
-GLFW_TARGET := win32-mingw
-GLFW_CLEAN_TARGET := mingw-clean
-LUA_TARGET := mingw
+LIBGLFW := dokidoki/glfw/lib/mingw/libglfw.a
+LIBGLFW_TARGET := win32-mingw
+LIBGLFW_CLEAN_TARGET := mingw-clean
+LIBLUA_TARGET := generic
 endif
 
-$(TARGET_EXE): $(GLFW_LIB) $(LUA_LIB) $(PORTAUDIO_LIB)
+$(TARGET_EXE): $(LIBGLFW) $(LIBLUA) $(LIBPORTAUDIO)
 
-$(GLFW_LIB):
-	$(MAKE) -C dokidoki/glfw $(GLFW_TARGET)
+$(LIBGLFW):
+	$(MAKE) -C dokidoki/glfw $(LIBGLFW_TARGET)
 
-$(LUA_LIB):
-	$(MAKE) -C dokidoki/lua $(LUA_TARGET)
+$(LIBLUA):
+	$(MAKE) -C dokidoki/lua/src $(LIBLUA_TARGET)
 
-$(PORTAUDIO_LIB):
+$(LIBPORTAUDIO):
 	cd dokidoki/portaudio && \
 		./configure --disable-shared --disable-universal-binary
 	$(MAKE) -C dokidoki/portaudio
@@ -110,7 +102,7 @@ clean: clean_dokidoki
 
 clean_dokidoki:
 	rm -f dokidoki/minlua__loaders.h
-	$(MAKE) -C dokidoki/glfw $(GLFW_CLEAN_TARGET)
-	$(MAKE) -C dokidoki/lua clean
+	$(MAKE) -C dokidoki/glfw $(LIBGLFW_CLEAN_TARGET)
+	$(MAKE) -C dokidoki/lua/src clean
 	test -f dokidoki/portaudio/Makefile && \
 		$(MAKE) -C dokidoki/portaudio distclean || true
