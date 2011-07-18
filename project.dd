@@ -62,7 +62,7 @@ LIBPORTAUDIO := dokidoki/portaudio/lib/.libs/libportaudio.a
 ifeq ($(UNAME), Linux)
 LIBGLFW := dokidoki/glfw/lib/x11/libglfw.a
 LIBGLFW_TARGET := x11
-LIBGLFW_CLEAN_TARGET := x11-clean
+LIBGLFW_CLEAN_TARGET := x11-dist-clean
 LIBLUA_TARGET := all MYCFLAGS=-DLUA_USE_DLOPEN MYLIBS="-Wl,-E -ldl"
 endif
 ifeq ($(UNAME), Darwin)
@@ -91,18 +91,29 @@ $(LIBPORTAUDIO):
 		./configure --disable-shared --disable-universal-binary
 	$(MAKE) -C dokidoki/portaudio
 
+# surpress warnings in third party code
+dokidoki/lua_stb_image.o: CFLAGS += -Wno-unused-result -Wno-all
+dokidoki/stb_vorbis.o: CFLAGS += -Wno-all
+dokidoki/luaglfw.o: CFLAGS += -Wno-all
+
 # generate the list of loaders for native modules
 dokidoki/minlua.o: dokidoki/minlua__loaders.h
 
 dokidoki/minlua__loaders.h: project.dd $(LIBRARIES:%=%/project.dd)
-	sh dokidoki/generate_loaders.sh $(LUA_NATIVE_MODULES) > $@
+	@echo generating $@
+	@sh dokidoki/generate_loaders.sh $(LUA_NATIVE_MODULES) > $@
 
 # clean the list of loaders
-clean: clean_dokidoki
+clean: clean-dokidoki
 
-clean_dokidoki:
+clean-dokidoki:
 	rm -f dokidoki/minlua__loaders.h
+
+clean-all: clean-all-dokidoki
+
+clean-all-dokidoki:
 	$(MAKE) -C dokidoki/glfw $(LIBGLFW_CLEAN_TARGET)
 	$(MAKE) -C dokidoki/lua/src clean
 	test -f dokidoki/portaudio/Makefile && \
 		$(MAKE) -C dokidoki/portaudio distclean || true
+
