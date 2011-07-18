@@ -92,7 +92,7 @@ $(LIBPORTAUDIO):
 	$(MAKE) -C dokidoki/portaudio
 
 # surpress warnings in third party code
-dokidoki/lua_stb_image.o: CFLAGS += -Wno-unused-result -Wno-all
+dokidoki/lua_stb_image.o: CFLAGS += -Wno-unused -Wno-all
 dokidoki/stb_vorbis.o: CFLAGS += -Wno-all
 dokidoki/luaglfw.o: CFLAGS += -Wno-all
 
