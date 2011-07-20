@@ -52,7 +52,7 @@ end
 
 local function rotate_vect(q, v)
   local result = q * make(0, v[1], v[2], v[3]) * conjugate(q)
-  return vect(q[2], q[3], q[4])
+  return vect(result[2], result[3], result[4])
 end
 
 local function rotated_i(q)
@@ -110,7 +110,7 @@ return setmetatable(
     mag = mag,
     norm = norm,
     conjugate = conjugate,
-    rotat_vect = rotate_vect,
+    rotate_vect = rotate_vect,
     rotated_i = rotated_i,
     rotated_j = rotated_j,
     rotated_k = rotated_k,
