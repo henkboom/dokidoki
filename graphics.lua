@@ -2,9 +2,12 @@ require "dokidoki.module"
 [[ draw_text,
    sprite_from_image, make_sprite,
    texture_from_image, texture_from_string,
-   get_texture_count ]]
+   get_texture_count,
+   apply_transform]]
 
 local stb_image = require "stb_image"
+local vect = require 'dokidoki.vect'
+local quaternion = require 'dokidoki.quaternion'
 
 import(require "gl")
 import(require "glu")
@@ -275,6 +278,44 @@ function texture_from_pointer(pointer, width, height, channels)
                     GL_UNSIGNED_BYTE, pointer)
   glBindTexture(GL_TEXTURE_2D, 0)
   return make_texture(name)
+end
+
+---- Transform ----------------------------------------------------------------
+
+local matrix = memarray('GLfloat', 16)
+
+function apply_transform(pos, orientation, scale)
+  local i = quaternion.rotated_i(orientation)
+  local j = quaternion.rotated_j(orientation)
+  local k = quaternion.rotated_k(orientation)
+
+  local scale_x = scale and scale[1] or 1
+  local scale_y = scale and scale[2] or 1
+  local scale_z = scale and scale[3] or 1
+
+  -- i
+  matrix[0] = i[1] * scale_x
+  matrix[1] = i[2] * scale_x
+  matrix[2] = i[3] * scale_x
+  matrix[3] = 0
+  -- j
+  matrix[4] = j[1] * scale_y
+  matrix[5] = j[2] * scale_y
+  matrix[6] = j[3] * scale_y
+  matrix[7] = 0
+  -- k
+  matrix[8] = k[1] * scale_z
+  matrix[9] = k[2] * scale_z
+  matrix[10] = k[3] * scale_z
+  matrix[11] = 0
+
+  -- translation
+  matrix[12] = pos[1]
+  matrix[13] = pos[2]
+  matrix[14] = pos[3]
+  matrix[15] = 1
+
+  glMultMatrixf(matrix:ptr())
 end
 
 ---- Utilities ----------------------------------------------------------------
