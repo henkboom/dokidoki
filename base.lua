@@ -1,6 +1,6 @@
 require "dokidoki.module"
-[[ range, ireverse, map, imap, ifoldl, iforeach, irandomize, iconcat, ifilter, copy, build_array,
-   identity, void, compose ]]
+[[ range, ireverse, map, imap, ifoldl, iforeach, irandomize, iconcat, ifilter,
+   copy, build_array, identity, void, compose, using ]]
 
 function range(first, last, step)
   step = step or 1
@@ -109,6 +109,16 @@ function compose(f, ...)
       return f(rest(...))
     end
   end
+end
+
+-- todo recursive
+function using(name)
+  _G[name] = setmetatable({}, {
+    __index = function (t, i)
+      t[i] = require(name .. '.' .. i)
+      return t[i]
+    end
+  })
 end
 
 return get_module_exports()

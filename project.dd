@@ -18,15 +18,17 @@ MINGW_LDFLAGS += -lopengl32 -lglu32 -lole32 -lwinmm
 
 LUA_SRC += \
     dokidoki/private/will.lua \
-	dokidoki/opengl_2d.lua \
     dokidoki/base.lua \
+    dokidoki/component.lua \
     dokidoki/default_font.lua \
+    dokidoki/event.lua \
     dokidoki/exit_handler.lua \
     dokidoki/game.lua \
     dokidoki/graphics.lua \
     dokidoki/kernel.lua \
     dokidoki/keyboard.lua \
     dokidoki/module.lua \
+    dokidoki/opengl_2d.lua \
     dokidoki/quaternion.lua \
     dokidoki/sprite.lua \
     dokidoki/transform.lua \

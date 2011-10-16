@@ -180,7 +180,7 @@ function start_main_loop (scene)
         running = true
       end
     end
-  end, get_stack_trace)
+  end, debug.traceback)
 
   log.log_message "shutting down"
   glfw.Terminate()
@@ -222,10 +222,6 @@ function switch_scene(scene)
 end
 
 ---- Utility Functions --------------------------------------------------------
-
-function get_stack_trace(err)
-  return debug.traceback(err, 2)
-end
 
 function set_callback(name, callback)
   local set = glfw['Set' .. name .. 'Callback']

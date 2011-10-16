@@ -1,4 +1,4 @@
---- dokidoki.components.exit_handler
+--- dokidoki.exit_handler
 --- ================================
 ---
 --- Allows an action to be taken when an exit event is received.
@@ -17,17 +17,26 @@
 --- Implementation
 --- --------------
 
-local kernel = require 'dokidoki.kernel'
+using 'dokidoki'
 require 'glfw'
 
-local args = ...
-on_close = args.on_close or kernel.abort_main_loop
-exit_on_esc = args.exit_on_esc or false
+local exit_handler = class(dokidoki.component)
+exit_handler._name = 'exit_handler'
 
-function handle_event(event)
+function exit_handler:_init(parent)
+  self:super(parent)
+  self.on_close = dokidoki.kernel.abort_main_loop
+  self.exit_on_esc = false
+
+  self:add_handler_for('handle_event')
+end
+
+function exit_handler:handle_event(event)
   if event.type == 'quit' or
-     (exit_on_esc and event.type == 'key' and event.is_down and
+     (self.exit_on_esc and event.type == 'key' and event.is_down and
       event.key == glfw.KEY_ESC) then
-    on_close()
+    self.on_close()
   end
 end
+
+return exit_handler

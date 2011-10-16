@@ -176,7 +176,7 @@ int main(int argc, char ** argv)
     lua_getglobal(L, "debug");
     lua_getfield(L, -1, "traceback");
 
-    int error = luaL_dofile(L, "init.lua");
+    int error = luaL_loadfile(L, "init.lua");
 
     if(!error)
     {
@@ -184,7 +184,7 @@ int main(int argc, char ** argv)
         lua_checkstack(L, argc - 1);
         for(i = 1; i <= argc - 1; i++)
             lua_pushstring(L, argv[i]);
-        error = lua_pcall(L, argc - 1, 0, -2);  // run the result
+        error = lua_pcall(L, argc - 1, 0, -argc-1);  // run the result
     }
 
     if(error)
