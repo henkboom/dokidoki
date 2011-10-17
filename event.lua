@@ -55,7 +55,7 @@ local function filter_out_nils_in_place(t, length)
 end
 
 function event:remove_handler(f)
-  assert(self._indices[f] ~= nil)
+  assert(self._indices[f] ~= nil, 'removing handler that isn\'t on this event')
   self._handlers[self._indices[f]] = nil
   self._indices[f] = nil
   self._count = self._count - 1

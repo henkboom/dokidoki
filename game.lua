@@ -29,11 +29,11 @@ function game:_init(update_events, draw_events)
     self.draw_events[i] = e
   end
 
-  ---- compoments ----
+  ---- components ----
   self.components = {}
   self._components_to_remove = {}
 
-  -- special case stuff for the root
+  -- self:super calls game:add_component, so we need to call this last
   self:super(self)
   self.parent = false
 end

@@ -47,4 +47,10 @@ function component:add_handler_for(event, callback)
   event:add_handler(callback)
 end
 
+function component:remove_handler_for(event)
+  local subscriptions = self[component].subscriptions
+  event:remove_handler(subscriptions[event])
+  subscriptions[event] = nil
+end
+
 return component
