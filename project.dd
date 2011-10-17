@@ -30,6 +30,7 @@ LUA_SRC += \
     dokidoki/module.lua \
     dokidoki/opengl_2d.lua \
     dokidoki/quaternion.lua \
+    dokidoki/retro_component.lua \
     dokidoki/sprite.lua \
     dokidoki/transform.lua \
     dokidoki/vect.lua
