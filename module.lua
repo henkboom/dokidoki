@@ -89,7 +89,7 @@ return function (export_defs)
   local function import (t)
     if type(t) == 'string' then t = require(t) end
     for k, v in pairs(t) do
-      assert(rawget(private, k) == nil and rawget(_G, k) == nil,
+      assert(rawget(private, k) == nil,
              "import collision for variable " .. k)
       rawset(private, k, v)
     end

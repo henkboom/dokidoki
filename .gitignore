@@ -1,4 +1,7 @@
 *~
 *.o
 *.P
-minlua__loaders.h
+/glfw
+/portaudio
+/minlua__loaders.h
+/lua
