@@ -1,6 +1,6 @@
 require "dokidoki.module"
 [[ range, ireverse, map, imap, ifoldl, iforeach, irandomize, iconcat, ifilter,
-   copy, build_array, identity, void, compose, using ]]
+   ifilter_in_place, copy, build_array, identity, void, compose, using ]]
 
 function range(first, last, step)
   step = step or 1
@@ -75,6 +75,33 @@ function ifilter (p, a)
     if p(v) then result[#result+1] = v end
   end
   return result
+end
+
+function ifilter_in_place (p, a)
+  local src = 1
+  while a[src] ~= nil and p(a[src]) do
+    -- [1..src) were already compacted
+    -- [src.. left to check
+    src = src + 1
+  end
+  -- [1..src) were already compacted
+  -- [src.. left to compact
+  local dest = src
+  while a[src] ~= nil do
+    -- [1..dest) compacted
+    -- [src.. to compact
+    if p(a[src]) then
+      a[dest] = a[src]
+      dest = dest + 1
+    end
+    src = src + 1
+  end
+  -- [1, dest) compacted
+  -- [dest.. garbage to nil out
+  while a[dest] ~= nil do
+    a[dest] = nil
+    dest = dest + 1
+  end
 end
 
 function copy (t)
