@@ -224,8 +224,11 @@ static void channel_fade_to(int channel, float duration, float left,
     assert(channel_is_valid(channel));
     if(channel_is_active(channel))
     {
-        while(channels[channel].new_fade_duration >= 0)
-            /* wait for previous fade to be acknowledged */;
+        // commented out because it causes lame lag
+        // really this whole thing should be revamped to use portaudio's ring
+        // buffers for communication
+        //while(channels[channel].new_fade_duration >= 0)
+        //    /* wait for previous fade to be acknowledged */;
 
         channels[channel].new_fade.volume[0] = left;
         channels[channel].new_fade.volume[1] = right;
