@@ -2,8 +2,11 @@
 
 CFLAGS += -Wall -O2 -DMEMARRAY_USE_OPENGL -Idokidoki/glfw/include \
 		  -Idokidoki/lua/src -Idokidoki/portaudio/include
-LDFLAGS += -Wl,-E
+LDFLAGS +=
 
+# -Wl,-E used to be here to make dynamic lua modules work, bit it's been taken
+# out because it doesn't really work portably. For example on windows we will
+# also need to compile lua as a dll to get dynamic modules to work properly.
 LINUX_CFLAGS += -DDOKIDOKI_LINUX -pthread
 LINUX_LDFLAGS += -pthread -lGL -lGLU -lX11 -lXrandr -lm -lasound -ljack
 
@@ -80,9 +83,9 @@ LIBGLFW_CLEAN_TARGET := cocoa-clean
 LIBLUA_TARGET := all MYCFLAGS="$(LUA_CFLAGS) -DLUA_USE_DLOPEN"
 endif
 ifeq ($(UNAME), MINGW32)
-LIBGLFW := dokidoki/glfw/lib/mingw/libglfw.a
-LIBGLFW_TARGET := win32-mingw
-LIBGLFW_CLEAN_TARGET := mingw-clean
+LIBGLFW := dokidoki/glfw/lib/win32/libglfw.a
+LIBGLFW_TARGET := win32-cygwin
+LIBGLFW_CLEAN_TARGET := cygwin-clean
 LIBLUA_TARGET := generic MYCFLAGS="$(LUA_CFLAGS)"
 endif
 
