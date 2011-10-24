@@ -15,8 +15,10 @@ function component:_init(parent)
   self[component] = { subscriptions = {} }
 
   self.removed:add_handler(function ()
-    for event,callback in pairs(self[component].subscriptions) do
+    local subscriptions = self[component].subscriptions
+    for event,callback in pairs(subscriptions) do
       event:remove_handler(callback)
+      subscriptions[event] = nil
     end
   end)
 

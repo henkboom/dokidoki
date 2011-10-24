@@ -2,6 +2,7 @@
 
 CFLAGS += -Wall -O2 -DMEMARRAY_USE_OPENGL -Idokidoki/glfw/include \
 		  -Idokidoki/lua/src -Idokidoki/portaudio/include
+LDFLAGS += -Wl,-E
 
 LINUX_CFLAGS += -DDOKIDOKI_LINUX -pthread
 LINUX_LDFLAGS += -pthread -lGL -lGLU -lX11 -lXrandr -lm -lasound -ljack
@@ -62,23 +63,27 @@ RESOURCES +=
 LIBLUA := dokidoki/lua/src/liblua.a
 LIBPORTAUDIO := dokidoki/portaudio/lib/.libs/libportaudio.a
 
+#LUA_CFLAGS := "-DLUA_USE_APICHECK"
+LUA_CFLAGS :=
+
 ifeq ($(UNAME), Linux)
 LIBGLFW := dokidoki/glfw/lib/x11/libglfw.a
 LIBGLFW_TARGET := x11
 LIBGLFW_CLEAN_TARGET := x11-dist-clean
-LIBLUA_TARGET := all MYCFLAGS=-DLUA_USE_DLOPEN MYLIBS="-Wl,-E -ldl"
+LIBLUA_TARGET := all MYCFLAGS="$(LUA_CFLAGS) -DLUA_USE_DLOPEN" \
+                     MYLIBS="-Wl,-E -ldl"
 endif
 ifeq ($(UNAME), Darwin)
 LIBGLFW := dokidoki/glfw/lib/cocoa/libglfw.a
 LIBGLFW_TARGET := cocoa
 LIBGLFW_CLEAN_TARGET := cocoa-clean
-LIBLUA_TARGET := all MYCFLAGS=-DLUA_USE_DLOPEN
+LIBLUA_TARGET := all MYCFLAGS="$(LUA_CFLAGS) -DLUA_USE_DLOPEN"
 endif
 ifeq ($(UNAME), MINGW32)
 LIBGLFW := dokidoki/glfw/lib/mingw/libglfw.a
 LIBGLFW_TARGET := win32-mingw
 LIBGLFW_CLEAN_TARGET := mingw-clean
-LIBLUA_TARGET := generic
+LIBLUA_TARGET := generic MYCFLAGS="$(LUA_CFLAGS)"
 endif
 
 $(TARGET_EXE): $(LIBGLFW) $(LIBLUA) $(LIBPORTAUDIO)

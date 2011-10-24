@@ -29,7 +29,7 @@ end
 ---- retro_component ----------------------------------------------------------
 
 local retro_component = class(dokidoki.component)
-retro_component._name = 'component'
+retro_component._name = 'retro_component'
 
 function retro_component:_init(parent, component_type, ...)
   self:super(parent)
@@ -44,8 +44,8 @@ function retro_component:_init(parent, component_type, ...)
         add_component = function (parent, component_type, ...)
           return retro_component(parent, component_type, ...)
         end,
-        remove_component = function ()
-          game:remove_component(self)
+        remove_component = function (component)
+          component:remove()
         end
       }, {__index = self.game})
     }
@@ -73,6 +73,11 @@ function retro_component:_init(parent, component_type, ...)
     if self[name] ~= nil then
       self:add_handler_for(event, function (...) self[name](...) end)
     end
+  end
+  if self.on_removal ~= nil then
+    self.removed:add_handler(function (...)
+      self.on_removal(...)
+    end)
   end
 end
 

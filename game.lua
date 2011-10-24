@@ -33,12 +33,16 @@ function game:_init(update_events, draw_events)
   self.components = {}
   self._components_to_remove = {}
 
+  self.init_callback = false
+
   -- self:super calls game:add_component, so we need to call this last
   self:super(self)
   self.parent = false
 end
 
-function game:start_main_loop()
+function game:start_main_loop(init)
+  self.init_callback = init
+
   dokidoki.kernel.start_main_loop{
     update = function (...) return self:_update(...) end,
     draw = function (...) return self:_draw(...) end,
@@ -51,10 +55,18 @@ function game:add_component(child)
 end
 
 function game:remove_component(component_to_remove)
-  self._componenents_to_remove[component_to_remove] = true
+  assert(not component_to_remove.dead, 'tried to remove dead component')
+  self._components_to_remove[component_to_remove] = true
 end
 
+local function not_dead(c) return not c.dead end
+
 function game:_update()
+  if self.init_callback then
+    self.init_callback()
+    self.init_callback = false
+  end
+
   for i = 1, #self.update_events do
     self.update_events[i]()
   end
@@ -69,14 +81,15 @@ function game:_update()
     end
     -- delete nodes reverse order (children first)
     for i = #self.components, 1, -1 do
+      local component = self.components[i]
       if self._components_to_remove[component] then
-        self._components_to_remove[component] = false
+        self._components_to_remove[component] = nil
         component.removed()
         component.dead = true
       end
     end
 
-    components = ifilter(function (c) return not c.dead end, components)
+    dokidoki.base.ifilter_in_place(not_dead, self.components)
 
     if self.dead then
       kernel.abort_main_loop()
@@ -86,7 +99,7 @@ end
 
 function game:_draw()
   for i = 1, #self.draw_events do
-    self.draw_events[i]()
+      self.draw_events[i]()
   end
 end
 
