@@ -12,6 +12,8 @@ PLATFORM := MACOSX
 endif
 ifeq ($(UNAME), MINGW32)
 PLATFORM := MINGW
+#force gcc on mingw, because the default, cc, doesn't exist
+CC=gcc
 endif
 endif
 
