@@ -1,5 +1,5 @@
 require "dokidoki.module"
-[[ draw_text,
+[[ font_map_line_height, draw_text,
    sprite_from_image, make_sprite,
    texture_from_image, texture_from_string,
    get_texture_count,
