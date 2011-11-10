@@ -31,6 +31,7 @@ function game:_init(update_events, draw_events)
 
   ---- components ----
   self.components = {}
+  self._components_to_start = {}
   self._components_to_remove = {}
 
   self.init_callback = false
@@ -52,6 +53,9 @@ end
 
 function game:add_component(child)
   table.insert(self.components, child)
+  if child._start then
+    table.insert(self._components_to_start, child)
+  end
 end
 
 function game:remove_component(component_to_remove)
@@ -61,6 +65,19 @@ end
 
 local function not_dead(c) return not c.dead end
 
+function game:_start_new_components()
+  while #components_to_start > 0 do
+    local components_to_start = self._components_to_start
+    self._components_to_start = {}
+
+    for i = 1, #components_to_start do
+      if not components_to_start[i].dead then
+        components_to_start[i]:_start()
+      end
+    end
+  end
+end
+
 function game:_update()
   if self.init_callback then
     self.init_callback()
@@ -68,6 +85,7 @@ function game:_update()
   end
 
   for i = 1, #self.update_events do
+    self:_start_new_components()
     self.update_events[i]()
   end
 
