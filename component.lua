@@ -50,6 +50,9 @@ function component:add_handler_for(event, callback)
 end
 
 function component:remove_handler_for(event)
+  if type(event) == 'string' then
+    event = self.game.events[event]
+  end
   local subscriptions = self[component].subscriptions
   event:remove_handler(subscriptions[event])
   subscriptions[event] = nil
