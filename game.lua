@@ -66,7 +66,7 @@ end
 local function not_dead(c) return not c.dead end
 
 function game:_start_new_components()
-  while #components_to_start > 0 do
+  while #self._components_to_start > 0 do
     local components_to_start = self._components_to_start
     self._components_to_start = {}
 
