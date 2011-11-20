@@ -78,8 +78,8 @@ static void fade_interp(const channel_t * chan, fade_t *out)
 
 static void fade_init(fade_t * out)
 {
-    out->volume[0] = 1;
-    out->volume[1] = 1;
+    out->volume[0] = 0;
+    out->volume[1] = 0;
 }
 
 //// Channels /////////////////////////////////////////////////////////////////
