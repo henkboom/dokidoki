@@ -6,16 +6,20 @@ ifndef PLATFORM
 UNAME := $(shell uname | cut -c 1-7)
 ifeq ($(UNAME), Linux)
 PLATFORM := LINUX
+EXE_SUFFIX := .bin
 endif
 ifeq ($(UNAME), Darwin)
 PLATFORM := MACOSX
+EXE_SUFFIX := .bin
 endif
 ifeq ($(UNAME), MINGW32)
 PLATFORM := MINGW
+EXE_SUFFIX := .exe
 #force gcc on mingw, because the default, cc, doesn't exist
 CC=gcc
 endif
 endif
+
 
 # initialize variables, load project settings
 PROJECT_NAME := unnamed
@@ -34,10 +38,8 @@ LUA_SRC :=
 LUA_NATIVE_MODULES :=
 
 include project.dd
-ifndef TARGET_DIR
-TARGET_DIR := $(PROJECT_NAME)
-endif
-TARGET_EXE := $(TARGET_DIR)/$(PROJECT_NAME)
+TARGET_DIR := build
+TARGET_EXE := $(TARGET_DIR)/$(PROJECT_NAME)$(EXE_SUFFIX)
 
 include $(LIBRARIES:%=%/project.dd)
 
