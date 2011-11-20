@@ -53,9 +53,7 @@ end
 
 function game:add_component(child)
   table.insert(self.components, child)
-  if child._start then
-    table.insert(self._components_to_start, child)
-  end
+  table.insert(self._components_to_start, child)
 end
 
 function game:remove_component(component_to_remove)
@@ -71,8 +69,9 @@ function game:_start_new_components()
     self._components_to_start = {}
 
     for i = 1, #components_to_start do
-      if not components_to_start[i].dead then
-        components_to_start[i]:_start()
+      local component = components_to_start[i]
+      if not component.dead and component._start then
+        component:_start()
       end
     end
   end
@@ -80,7 +79,7 @@ end
 
 function game:_update()
   if self.init_callback then
-    self.init_callback()
+    self.init_callback(self)
     self.init_callback = false
   end
 
