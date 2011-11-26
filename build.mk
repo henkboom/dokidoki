@@ -83,7 +83,8 @@ $(RESOURCE_TARGETS): $(TARGET_DIR)/%: %
 # TARGET_EXE is a dependency because we need luac to be built
 $(LUA_TARGETS): $(TARGET_DIR)/%: % $(TARGET_EXE)
 	@echo verifying $@...
-	@dokidoki/lua/src/luac -p $<
+	@#@dokidoki/lua/src/luac -p $<
+	@dokidoki/luajit/src/luajit -b $< /dev/null
 	@echo copying $@...
 	@mkdir -p `dirname $@`
 	@cp $< $@

@@ -1,7 +1,9 @@
 #### Project Stuff ############################################################
 
+LUA_DIR := dokidoki/luajit
+
 CFLAGS += -Wall -O2 -DMEMARRAY_USE_OPENGL -Idokidoki/glfw/include \
-		  -Idokidoki/lua/src -Idokidoki/portaudio/include
+		  -I$(LUA_DIR)/src -Idokidoki/portaudio/include
 LDFLAGS +=
 
 # -Wl,-E used to be here to make dynamic lua modules work, bit it's been taken
@@ -63,7 +65,7 @@ RESOURCES +=
 
 #### Custom Build Stuff #######################################################
 
-LIBLUA := dokidoki/lua/src/liblua.a
+LIBLUA := $(LUA_DIR)/src/libluajit.a
 LIBPORTAUDIO := dokidoki/portaudio/lib/.libs/libportaudio.a
 
 #LUA_CFLAGS := "-DLUA_USE_APICHECK"
@@ -95,7 +97,7 @@ $(LIBGLFW):
 	$(MAKE) -C dokidoki/glfw $(LIBGLFW_TARGET)
 
 $(LIBLUA):
-	$(MAKE) -C dokidoki/lua/src $(LIBLUA_TARGET)
+	$(MAKE) -C $(LUA_DIR)/src $(LIBLUA_TARGET)
 
 $(LIBPORTAUDIO):
 	cd dokidoki/portaudio && \
@@ -124,7 +126,7 @@ clean-all: clean-all-dokidoki
 
 clean-all-dokidoki:
 	$(MAKE) -C dokidoki/glfw $(LIBGLFW_CLEAN_TARGET)
-	$(MAKE) -C dokidoki/lua/src clean
+	$(MAKE) -C $(LUA_DIR)/src clean
 	test -f dokidoki/portaudio/Makefile && \
 		$(MAKE) -C dokidoki/portaudio distclean || true
 
