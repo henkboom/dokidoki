@@ -266,7 +266,7 @@ static unsigned short get_u16(FILE * file)
     return n + (get_u8(file) << 8);
 }
 
-static unsigned short get_s16(FILE * file)
+static signed short get_s16(FILE * file)
 {
     return (signed short)get_u16(file);
 }
